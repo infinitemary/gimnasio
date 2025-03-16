@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  admin     Admin?
+  client    Client?
+  trainer   Trainer?
+}
+
+model Client {
+  id                 String              @id @default(uuid())
+  userId             String              @unique
+  cedula             String              @unique
+  qrCode             String              @unique
+  phone              String?
+  birthDate          DateTime?
+  address            String?
+  attendances        Attendance[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventRegistrations EventRegistration[]
+  measurements       Measurement[]
+  payments           Payment[]
+  routines           Routine[]
+}
+
+model Trainer {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  cedula      String    @unique
+  specialties String[]
+  bio         String?
+  isAvailable Boolean   @default(true)
+  events      Event[]
+  routines    Routine[]
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Admin {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  permissions String[]
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Attendance {
+  id        String    @id @default(uuid())
+  clientId  String
+  checkIn   DateTime  @default(now())
+  checkOut  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  client    Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  clientId    String
+  amount      Float
+  concept     String
+  paymentDate DateTime      @default(now())
+  dueDate     DateTime?
+  status      PaymentStatus @default(PENDING)
+  promotionId String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  promotion   Promotion?    @relation(fields: [promotionId], references: [id])
+}
+
+model Promotion {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  discount    Float
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  payments    Payment[]
+}
+
+model TrainingStyle {
+  id               String    @id @default(uuid())
+  name             String    @unique
+  mainObjective    String
+  typicalExercises String[]
+  repRange         String
+  restPeriod       String
+  focusDescription String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  routines         Routine[]
+}
+
+model Routine {
+  id              String         @id @default(uuid())
+  name            String
+  description     String?
+  clientId        String
+  trainerId       String?
+  trainingStyleId String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  client          Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  trainer         Trainer?       @relation(fields: [trainerId], references: [id])
+  trainingStyle   TrainingStyle? @relation(fields: [trainingStyleId], references: [id])
+  exercises       Exercise[]     @relation("ExerciseToRoutine")
+}
+
+model Exercise {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  muscleGroup String[]
+  equipment   String?
+  difficulty  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  routines    Routine[] @relation("ExerciseToRoutine")
+}
+
+model Measurement {
+  id          String   @id @default(uuid())
+  clientId    String
+  weight      Float?
+  height      Float?
+  bodyFat     Float?
+  chest       Float?
+  waist       Float?
+  hips        Float?
+  arms        Float?
+  legs        Float?
+  measureDate DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id            String              @id @default(uuid())
+  name          String
+  description   String?
+  eventType     String
+  startDate     DateTime
+  endDate       DateTime
+  capacity      Int
+  location      String?
+  trainerId     String
+  requirements  String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  trainer       Trainer             @relation(fields: [trainerId], references: [id])
+  registrations EventRegistration[]
+}
+
+model EventRegistration {
+  id               String   @id @default(uuid())
+  eventId          String
+  clientId         String
+  registrationDate DateTime @default(now())
+  attended         Boolean  @default(false)
+  feedback         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  client           Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, clientId])
+}
+
+enum Role {
+  CLIENT
+  TRAINER
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
