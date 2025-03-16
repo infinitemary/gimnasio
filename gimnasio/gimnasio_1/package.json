@@ -1,0 +1,37 @@
+{
+  "name": "cosmos-gym",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "frontend:dev": "cd app && npm run dev",
+    "frontend:build": "cd app && npm run build",
+    "frontend:start": "cd app && npm run start",
+    "backend:dev": "cd backend && npm run start:dev",
+    "backend:build": "cd backend && npm run build",
+    "backend:start": "cd backend && npm run start:prod",
+    "dev": "concurrently \"npm run frontend:dev\" \"npm run backend:dev\"",
+    "build": "concurrently \"npm run frontend:build\" \"npm run backend:build\"",
+    "start": "concurrently \"npm run frontend:start\" \"npm run backend:start\""
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.67.3",
+    "next": "15.2.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-qr-scanner": "^1.0.0-alpha.11",
+    "styled-components": "^6.1.15",
+    "twin.macro": "^3.4.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.2",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "concurrently": "^8.0.1"
+  }
+}
